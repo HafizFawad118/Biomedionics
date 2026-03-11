@@ -1,0 +1,406 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║           DynoMed Pro — A to Z Complete Guide                        ║
+║           ESP32 + Load Cell + HX711 + OLED + Firebase + Website      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  HUMNE KYA KYA KAR LIYA HAI — PROGRESS SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [✓]  1. System design decide kiya
+            ESP32 MAC Address = Device ka unique ID
+            User website pe ID enter karta hai = connection
+            OLED + Serial Monitor dono same info dikhate hain
+
+  [✓]  2. Firebase project banaya
+            Project name  : biomedionics-5d664
+            Database URL  : biomedionics-5d664-default-rtdb.firebaseio.com
+            Rules         : .read = true, .write = true (test mode)
+
+  [✓]  3. Firebase credentials collect kiye
+            API Key       : AIzaSyBJ0jSR1nyRtZmOrsYTd0fxT0jvVxUudm8
+            Auth Domain   : biomedionics-5d664.firebaseapp.com
+            Project ID    : biomedionics-5d664
+            Secret Key    : Pjfop6VbVGIWrCMYLrooGC7gTC9UlceDS3j3a0Il
+
+  [✓]  4. WiFi credentials set kiye
+            SSID          : HUAWEI-yJ9e
+            Password      : hammad123
+
+  [✓]  5. ESP32 code likha — DynoMed_ESP32_FINAL.ino
+            - MAC address auto read karta hai
+            - OLED pe Device ID bade font mein dikhata hai
+            - Serial Monitor pe bhi same info
+            - Firebase se status check karta hai (waiting/connecting/connected)
+            - Load Cell se force read karta hai
+            - Firebase pe data push karta hai har second
+
+  [✓]  6. Website banai — DynoMed_Website_FINAL.html
+            - 3 devices: BioForge Pro, DiabSense DPN, DynoMed Force Sensor
+            - Device detail page with specs + quantity + order
+            - Cart page with quantity change + remove
+            - Checkout page with shipping + payment form
+            - Connect button (sirf DynoMed pe)
+            - Real-time Firebase graph (Chart.js)
+            - Export PNG + Export Excel
+            - Firebase config already fill hai
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ABHI KYA KARNA BAKI HAI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ]  1. Arduino IDE mein 4 libraries install karo
+  [ ]  2. Hardware wire karo (connections neeche hain)
+  [ ]  3. Load Cell calibrate karo (pehli baar)
+  [ ]  4. ESP32 pe code upload karo
+  [ ]  5. Website browser mein kholo aur test karo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  POORA SYSTEM — EK NAZAR MEIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [Load Cell] ──► [HX711] ──► [ESP32] ──► WiFi ──► [Firebase Cloud]
+                                                           │
+                                                    [Website Browser]
+                                                     Real-time Graph
+
+  User ka experience:
+  1. Device ON karo
+  2. OLED pe Device ID dekho  (e.g. A4CF123B7F2E)
+  3. Website kholo → DynoMed → Connect Device
+  4. ID enter karo → Connect dabao
+  5. Graph live start ho jata hai!
+  6. Export PNG ya Excel jab chahein
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 1 — HARDWARE LIST (Kya kharidna hai)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Component                   Model                   Price (approx)
+  ─────────────────────────── ─────────────────────── ───────────────
+  Microcontroller             ESP32 DevKit V1         Rs. 800
+  Force Sensor                Load Cell 5kg / 20kg    Rs. 400
+  ADC Module                  HX711                   Rs. 150
+  Display                     OLED 0.96" SSD1306 I2C  Rs. 350
+  USB Cable                   Micro USB               Rs. 100
+  ─────────────────────────── ─────────────────────── ───────────────
+  TOTAL per device                                    ~Rs. 1,800
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 2 — WIRING (Hardware Connections)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─────────────────────────────────────────┐
+  │  LOAD CELL  →  HX711                    │
+  ├─────────────────────────────────────────┤
+  │  Red Wire   →  E+                       │
+  │  Black Wire →  E-                       │
+  │  White Wire →  A+                       │
+  │  Green Wire →  A-                       │
+  └─────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────┐
+  │  HX711      →  ESP32                    │
+  ├─────────────────────────────────────────┤
+  │  VCC        →  3.3V                     │
+  │  GND        →  GND                      │
+  │  DT (DOUT)  →  GPIO 16                  │
+  │  SCK        →  GPIO 17                  │
+  └─────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────┐
+  │  OLED SSD1306  →  ESP32                 │
+  ├─────────────────────────────────────────┤
+  │  VCC           →  3.3V                  │
+  │  GND           →  GND                   │
+  │  SDA           →  GPIO 21               │
+  │  SCL           →  GPIO 22               │
+  └─────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 3 — ARDUINO IDE SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  STEP 3.1 — ESP32 Board add karo
+  ─────────────────────────────────
+  1. Arduino IDE kholo
+  2. File → Preferences
+  3. "Additional boards manager URLs" mein ye paste karo:
+     https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+  4. OK dabao
+  5. Tools → Board → Boards Manager
+  6. Search: esp32
+  7. "esp32 by Espressif Systems" → Install dabao
+  8. Wait karo (5-10 min)
+
+  STEP 3.2 — 4 Libraries install karo
+  ─────────────────────────────────────
+  Sketch → Include Library → Manage Libraries
+
+  In 4 ko search karke Install karo:
+
+  ┌────────────────────────────────────────────────────────────────┐
+  │  #   Search Query              By (Author)                     │
+  │ ─── ────────────────────────── ──────────────────────────────  │
+  │  1   HX711                     bogde                           │
+  │  2   Adafruit SSD1306           Adafruit                       │
+  │  3   Adafruit GFX Library       Adafruit                       │
+  │  4   Firebase Arduino Client    Mobizt                         │
+  │      Library for ESP8266        (full name search karo)        │
+  │      and ESP32                                                  │
+  └────────────────────────────────────────────────────────────────┘
+
+  STEP 3.3 — Board settings
+  ──────────────────────────
+  1. ESP32 USB se laptop se lagao
+  2. Tools → Board → ESP32 Arduino → ESP32 Dev Module
+  3. Tools → Port → COM3 (ya jo port show ho)
+  4. Tools → Upload Speed → 115200
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 4 — LOAD CELL CALIBRATION (Pehli baar karna hai)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. ESP32 code mein ye line change karo:
+         #define CALIBRATION_MODE   true
+
+  2. Upload karo → Serial Monitor kholo (115200 baud)
+
+  3. Koi weight nahi rakhna — Serial pe ek number aayega
+     Note karo: zero_value = ___________
+
+  4. Apna 1kg ya known weight rakho
+     Note karo: with_value = ___________
+
+  5. Formula:
+     CALIBRATION_FACTOR = (with_value - zero_value) / weight_in_kg
+
+     Example: (230000 - 1500) / 1.0 = 228500
+
+  6. Wo number code mein daalo:
+         #define CALIBRATION_FACTOR   228500.0f
+
+  7. CALIBRATION_MODE wapas false karo:
+         #define CALIBRATION_MODE   false
+
+  8. Dobara upload karo — ab accurate readings aayengi!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 5 — ESP32 CODE UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  File: DynoMed_ESP32_FINAL.ino
+
+  Ye sab already fill hai — kuch change karne ki zarurat NAHI:
+
+  ┌────────────────────────────────────────────────────────────────┐
+  │  WIFI_SSID      = "HUAWEI-yJ9e"                               │
+  │  WIFI_PASSWORD  = "hammad123"                                  │
+  │  FIREBASE_HOST  = "biomedionics-5d664-default-rtdb..."         │
+  │  FIREBASE_AUTH  = "Pjfop6VbVGIWrCMYLrooGC7gTC9UlceDS3j3a0Il" │
+  └────────────────────────────────────────────────────────────────┘
+
+  Upload steps:
+  1. DynoMed_ESP32_FINAL.ino Arduino IDE mein kholo
+  2. ESP32 USB se lagao
+  3. → (Upload) button dabao
+  4. "Done uploading" aane ka wait karo
+  5. Tools → Serial Monitor → Baud: 115200
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 6 — WEBSITE USE KARNA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  File: DynoMed_Website_FINAL.html
+  Firebase config already fill hai — kuch change nahi karna
+
+  Use karna:
+  1. HTML file pe double-click karo → browser mein khulegi
+  2. "DynoMed Force Sensor" card pe click karo
+  3. "View Details" pe click karo
+  4. Top right mein "Connect Device" button dabao
+  5. OLED pe jo ID dikhti hai woh enter karo (e.g. A4CF123B7F2E)
+  6. Connect dabao → graph live!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 7 — OLED + SERIAL MONITOR — KYA KYA DIKHEGA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Boot sequence (power ON ke baad):
+
+  OLED Screen                    Serial Monitor
+  ────────────────────────────── ──────────────────────────────────
+  "DynoMed Pro — Starting..."    ╔══════════════════════════╗
+                                 ║  DynoMed Pro Starting Up  ║
+                                 ╚══════════════════════════╝
+
+  ┌─────────────────┐            ╔══════════════════════════╗
+  │  Your Device ID:│            ║      YOUR DEVICE ID       ║
+  │  A4CF12         │ ← BADA    ║   >>  A4CF123B7F2E  <<   ║
+  │  3B7F2E         │   FONT    ║  Enter on the website!    ║
+  │  Enter on web!  │            ╚══════════════════════════╝
+  └─────────────────┘
+
+  "Load Cell: Ready ✓"           [HX711] ✓ Ready!
+  "WiFi: Connecting..."          [WiFi] Trying... 3/40
+  "WiFi: Connected ✓"            [WiFi] ✓ Connected! IP: 192.168.x.x
+  "Firebase: OK"                 [Firebase] ✓ Connected & Registered!
+  "Waiting for website..."       [STATUS] → waiting
+
+  Loop states:
+
+  State           OLED                       Serial
+  ─────────────── ────────────────────────── ──────────────────────────
+  waiting         ID + "Waiting for web..."  [STATUS] → waiting
+  connecting      Blinking animation         [STATUS] → connecting
+  connected       "145.3N" big + CONNECTED   [DATA] 145.32 N | Sent ✓
+  disconnected    "Disconnected!"            [STATUS] → disconnected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 8 — WEBSITE KI FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  HOME PAGE
+  ─────────
+  - 3 devices dikhte hain cards mein:
+    1. BioForge Pro (Bioprinter)    — $24,999
+    2. DiabSense DPN (Neuropathy)   — $3,499
+    3. DynoMed Force Sensor         — $1,299
+  - Har card pe click karo → detail page khulti hai
+
+  DEVICE DETAIL PAGE
+  ──────────────────
+  - Device ki full info, specs, price
+  - Quantity selector (+ / -)
+  - "Add to Cart" button
+  - "Buy Now" button
+  - "Connect Device" button (sirf DynoMed pe dikhta hai)
+
+  CONNECT FLOW
+  ────────────
+  1. Connect Device dabao
+  2. Modal mein Device ID daalo (OLED pe dikhti hai)
+  3. Connect dabao
+  4. Spinner 2.5 sec → OLED pe "Connecting..." blink
+  5. Connected! → Graph appear hota hai
+  6. Status badge: "● LIVE — A4CF123B7F2E"
+
+  LIVE GRAPH
+  ──────────
+  - Real-time force data har second update hota hai
+  - 4 stats: Current N / Max N / Min N / Average N
+  - "📷 Export PNG" — graph ki image save hoti hai
+  - "📊 Export Excel" — timestamps + force values ki .xlsx file
+
+  CART PAGE
+  ─────────
+  - Jo bhi add kiya wo dikhta hai
+  - Quantity change kar sakte hain
+  - Remove kar sakte hain
+  - Subtotal + Tax (8%) + Total calculate hota hai
+  - "Proceed to Checkout" button
+
+  CHECKOUT PAGE
+  ─────────────
+  - Shipping form: Name, Email, Phone, Hospital, Address
+  - Payment form: Card number, Expiry, CVV
+  - Order summary side panel
+  - "Place Order" → Success modal
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 9 — FIREBASE DATABASE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Jab ESP32 boot hoga, Firebase mein ye structure bane ga:
+
+  biomedionics-5d664-default-rtdb
+  └── dynometer
+      └── A4CF123B7F2E          ← ESP32 ka MAC address
+          ├── status: "waiting" ← website se control hota hai
+          ├── deviceId: "A4CF123B7F2E"
+          ├── ip: "192.168.1.x"
+          └── readings
+              ├── -abc123
+              │   ├── force: 145.3
+              │   ├── forceKg: 14.812
+              │   ├── timestamp: 12345678
+              │   └── unit: "Newton"
+              ├── -def456
+              │   └── ...
+              └── ...
+
+  Status values:
+  ─────────────
+  "waiting"      → ESP32 boot hua, koi connected nahi
+  "connecting"   → Website ne ID enter kiya, signal ja raha hai
+  "connected"    → Data streaming ho raha hai
+  "disconnected" → Website ne disconnect kiya
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 10 — TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Problem: OLED kuch nahi dikh raha
+  ─────────────────────────────────
+  → SDA = GPIO 21, SCL = GPIO 22 check karo
+  → VCC = 3.3V (5V nahi!)
+  → I2C address 0x3C ya 0x3D try karo
+
+  Problem: HX711 readings 0 ya bahut galat
+  ─────────────────────────────────────────
+  → CALIBRATION_MODE = true karke calibrate karo
+  → Load cell wiring: Red=E+, Black=E-, White=A+, Green=A-
+  → DT = GPIO 16, SCK = GPIO 17
+
+  Problem: WiFi connect nahi ho raha
+  ───────────────────────────────────
+  → WIFI_SSID = "HUAWEI-yJ9e" (capital letters check karo)
+  → WIFI_PASSWORD = "hammad123" (sahi hai?)
+  → ESP32 2.4GHz WiFi use karta hai — 5GHz nahi chalega
+  → Router se zyada door na ho
+
+  Problem: Firebase error
+  ────────────────────────
+  → FIREBASE_HOST mein https:// nahi hona chahiye
+  → Rules check karo: .read = true, .write = true
+  → Firebase Console mein Realtime Database enabled hai?
+
+  Problem: Website pe "Device not found"
+  ──────────────────────────────────────
+  → ESP32 ON hai aur WiFi connected hai?
+  → Device ID bilkul sahi daala? (Capital letters, no spaces)
+  → Firebase mein /dynometer/DEVICEID path exist karta hai?
+  → Browser console (F12) mein error dekho
+
+  Problem: Graph nahi aa raha
+  ────────────────────────────
+  → Connected status show ho raha hai?
+  → Firebase Console mein /dynometer/ID/readings mein data aa raha hai?
+  → Browser console (F12 → Console tab) mein error check karo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 11 — FILES SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  File                           Kaam
+  ─────────────────────────────  ──────────────────────────────────────
+  DynoMed_ESP32_FINAL.ino        Arduino IDE mein kholo → ESP32 pe upload
+  DynoMed_Website_FINAL.html     Browser mein double-click → website ready
+  GUIDE_A_to_Z.txt               Ye guide file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PART 12 — FIREBASE CREDENTIALS (Reference ke liye)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Project ID     : biomedionics-5d664
+  Database URL   : https://biomedionics-5d664-default-rtdb.firebaseio.com
+  API Key        : AIzaSyBJ0jSR1nyRtZmOrsYTd0fxT0jvVxUudm8
+  Secret Key     : Pjfop6VbVGIWrCMYLrooGC7gTC9UlceDS3j3a0Il
+  WiFi SSID      : HUAWEI-yJ9e
+  WiFi Password  : hammad123
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Good luck! Koi bhi masla aaye — Claude se poochho  :)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

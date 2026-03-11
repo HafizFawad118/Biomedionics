@@ -1,0 +1,6 @@
+Dr Umair ESP Information (My Esp)
+Board: ESP32
+WiFi MAC Address: A8:42:E3:91:60:50
+Bluetooth MAC Address: A8:42:E3:91:60:52
+WiFi Supported: YES
+Bluetooth Supported: YES
