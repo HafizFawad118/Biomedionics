@@ -231,7 +231,7 @@ tr:hover td{background:#f9fafb;}
 /* ── MODALS ── */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(3px);z-index:500;align-items:center;justify-content:center;padding:20px;}
 .modal-ov.open{display:flex;}
-.modal-bx{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+.modal-bx{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
 .modal-bx h3{font-size:18px;font-weight:800;color:#0a1628;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
 .modal-btns{display:flex;gap:10px;margin-top:18px;}
 .btn-mc{flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
@@ -242,6 +242,27 @@ tr:hover td{background:#f9fafb;}
   .admin-main{margin-left:200px;}
   .stats-row{grid-template-columns:1fr 1fr;}
 }
+
+/* ══ ORDER TABS ══ */
+.order-tab{flex:1;padding:11px 8px;border:none;border-right:1px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);transition:all 0.15s;white-space:nowrap;}
+.order-tab:last-child{border-right:none;}
+.order-tab:hover{background:var(--bg);}
+.order-tab.active{background:#0a1628;color:#fff;}
+.order-tab.new-tab.active{background:#dc2626;}
+.tab-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:rgba(255,255,255,0.2);font-size:10px;font-weight:800;padding:0 4px;margin-left:5px;}
+.new-cnt{background:#dc2626;color:#fff;border-radius:9px;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-left:5px;font-size:10px;font-weight:800;}
+.order-tab.active .tab-cnt{background:rgba(255,255,255,0.25);}
+.new-order-row td{background:#fff8f8!important;border-left:3px solid #dc2626;}
+.new-order-row td:first-child::before{content:"🆕 ";font-size:10px;}
+
+/* ══ ADMIN REVIEWS ══ */
+.rv-admin-star{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);transition:all 0.15s;}
+.rv-admin-star.active{background:#0a1628;color:#fff;border-color:#0a1628;}
+.admin-rv-card{background:#fff;border:1px solid var(--border);border-radius:9px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;}
+.arc-stars{color:#f59e0b;font-size:14px;margin-bottom:3px;}
+.arc-meta{font-size:12px;color:var(--text2);}
+.arc-text{font-size:13px;color:var(--text);}
+.arc-device{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:#f3f4f6;border-radius:4px;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;}
 </style>
 </head>
 <body>
@@ -294,6 +315,11 @@ tr:hover td{background:#f9fafb;}
       </div>
       <div class="snav-item" onclick="showSection('adddevice')">
         <span class="snav-icon">➕</span> Add New Device
+      </div>
+      <div class="snav-section">Reviews</div>
+      <div class="snav-item" onclick="showSection('reviews')">
+        <span class="snav-icon">⭐</span> Customer Reviews
+        <span class="snav-badge" id="reviewsBadge" style="display:none;background:#f59e0b;">0</span>
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -375,26 +401,48 @@ tr:hover td{background:#f9fafb;}
 
       <!-- ═══ ORDERS ═══ -->
       <div id="sec-orders" class="admin-section">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
           <div>
             <div style="font-size:18px;font-weight:800;color:#0a1628;">All Orders</div>
-            <div style="font-size:13px;color:var(--text2);margin-top:2px;">Click on any order to view details and update tracking</div>
+            <div style="font-size:13px;color:var(--text2);margin-top:2px;">Click any order to view details & update status</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <select id="orderFilter" onchange="renderOrdersTable()" style="padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;">
-              <option value="all">All Statuses</option>
-              <option value="preparing">Getting Ready</option>
-              <option value="onway">On The Way</option>
-              <option value="delivered">Delivered</option>
+            <input type="text" id="orderSearch" placeholder="Search by ID or name..." onInput="renderOrdersTable()"
+              style="padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;outline:none;width:200px;"/>
+            <select id="orderTimeFilter" onchange="renderOrdersTable()" style="padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;outline:none;">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
             </select>
           </div>
         </div>
+
+        <!-- Status Tabs -->
+        <div style="display:flex;gap:0;margin-bottom:16px;background:#fff;border:1px solid var(--border);border-radius:9px;overflow:hidden;">
+          <button class="order-tab active" data-filter="all" onclick="setOrderTab(this,'all')">
+            All <span id="tab-count-all" class="tab-cnt">0</span>
+          </button>
+          <button class="order-tab new-tab" data-filter="new" onclick="setOrderTab(this,'new')">
+            🆕 New <span id="tab-count-new" class="tab-cnt new-cnt">0</span>
+          </button>
+          <button class="order-tab" data-filter="preparing" onclick="setOrderTab(this,'preparing')">
+            📦 Getting Ready <span id="tab-count-preparing" class="tab-cnt">0</span>
+          </button>
+          <button class="order-tab" data-filter="onway" onclick="setOrderTab(this,'onway')">
+            🚚 On The Way <span id="tab-count-onway" class="tab-cnt">0</span>
+          </button>
+          <button class="order-tab" data-filter="delivered" onclick="setOrderTab(this,'delivered')">
+            ✅ Delivered <span id="tab-count-delivered" class="tab-cnt">0</span>
+          </button>
+        </div>
+
         <div class="table-card">
           <table>
             <thead><tr>
               <th>Order ID</th><th>Customer</th><th>City / Country</th>
               <th>Items</th><th>Total (PKR)</th><th>Payment</th>
-              <th>Status</th><th>Date</th><th>Action</th>
+              <th>Status</th><th>Date & Time</th><th>Action</th>
             </tr></thead>
             <tbody id="allOrdersTable">
               <tr><td colspan="9" style="text-align:center;color:var(--text2);padding:30px;">Loading...</td></tr>
@@ -438,6 +486,35 @@ tr:hover td{background:#f9fafb;}
         </div>
       </div>
 
+      <!-- ═══ REVIEWS ═══ -->
+      <div id="sec-reviews" class="admin-section">
+        <div style="font-size:18px;font-weight:800;color:#0a1628;margin-bottom:4px;">Customer Reviews</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Manage reviews across all devices — approve, delete, filter by rating</div>
+
+        <!-- Filters -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+          <div style="flex:1;min-width:160px;">
+            <select id="rvDevFilter" onchange="loadAdminReviews()" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;outline:none;">
+              <option value="all">All Devices</option>
+              <option value="biosoft">BioSoft Ⅰ</option>
+              <option value="diabsense">Diabe-Neurosense</option>
+              <option value="isometri">Isometri Muscle Meter</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="rv-admin-star active" data-s="0" onclick="setAdminStarFilter(0,this)">All Stars</button>
+            <button class="rv-admin-star" data-s="5" onclick="setAdminStarFilter(5,this)">★★★★★</button>
+            <button class="rv-admin-star" data-s="4" onclick="setAdminStarFilter(4,this)">★★★★</button>
+            <button class="rv-admin-star" data-s="3" onclick="setAdminStarFilter(3,this)">★★★</button>
+            <button class="rv-admin-star" data-s="2" onclick="setAdminStarFilter(2,this)">★★</button>
+            <button class="rv-admin-star" data-s="1" onclick="setAdminStarFilter(1,this)">★</button>
+          </div>
+          <div style="font-size:13px;color:var(--text2);" id="rvAdminCount">—</div>
+        </div>
+
+        <div id="adminReviewsList"></div>
+      </div>
+
       <!-- ═══ ADD DEVICE ═══ -->
       <div id="sec-adddevice" class="admin-section">
         <div style="font-size:18px;font-weight:800;color:#0a1628;margin-bottom:4px;">Add New Device</div>
@@ -469,12 +546,16 @@ tr:hover td{background:#f9fafb;}
 
         <div class="form-card">
           <div class="form-card-title">Device Image</div>
-          <div class="img-upload-area" id="nd-upload-area">
-            <input type="file" id="nd-img-file" accept="image/*" onchange="previewNewDeviceImg(this)"/>
-            <div class="upload-icon">📸</div>
-            <div class="upload-text">Click to upload device image</div>
-            <div class="upload-hint">PNG, JPG, WebP — max 5MB</div>
-            <img id="nd-img-preview" class="uploaded-preview"/>
+          <div style="border:2px dashed #d1d5db;border-radius:9px;padding:20px;text-align:center;background:#f9fafb;">
+            <img id="nd-img-preview" style="max-height:150px;max-width:100%;object-fit:contain;border-radius:7px;margin-bottom:10px;display:none;"/>
+            <div id="nd-img-icon" style="font-size:32px;margin-bottom:8px;">📸</div>
+            <div id="nd-img-status" style="font-size:12px;color:#6b7280;margin-bottom:12px;">No image selected</div>
+            <button type="button" onclick="document.getElementById('nd-img-file').click()"
+              style="padding:9px 20px;background:#0a1628;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+              📁 Choose Image
+            </button>
+            <input type="file" id="nd-img-file" accept="image/*" style="display:none;" onchange="previewNewDeviceImg(this)"/>
+            <div style="font-size:10px;color:#9ca3af;margin-top:8px;">PNG, JPG, WebP — max 2MB</div>
           </div>
         </div>
 
@@ -527,13 +608,29 @@ tr:hover td{background:#f9fafb;}
       </div>
     </div>
     <div class="fg2"><label>Description</label><textarea id="ed-desc"></textarea></div>
-    <div class="fg2"><label>Upload New Image</label>
-      <div class="img-upload-area">
-        <input type="file" id="ed-img-file" accept="image/*" onchange="previewEditImg(this)"/>
-        <div class="upload-icon">📸</div>
-        <div class="upload-text">Click to replace image</div>
-        <img id="ed-img-preview" class="uploaded-preview"/>
+    <div class="fg2"><label>Device Image</label>
+      <div style="border:2px dashed #d1d5db;border-radius:9px;padding:16px;text-align:center;background:#f9fafb;">
+        <img id="ed-img-preview" style="max-height:140px;max-width:100%;object-fit:contain;border-radius:7px;margin-bottom:10px;display:none;"/>
+        <div id="ed-img-placeholder" style="font-size:28px;margin-bottom:6px;">📸</div>
+        <div style="font-size:12px;color:#6b7280;margin-bottom:10px;" id="ed-img-status">No new image selected</div>
+        <button type="button" onclick="document.getElementById('ed-img-file').click()"
+          style="padding:8px 18px;background:#0a1628;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+          📁 Choose Image
+        </button>
+        <input type="file" id="ed-img-file" accept="image/*" style="display:none;" onchange="previewEditImg(this)"/>
+        <div style="font-size:10px;color:#9ca3af;margin-top:6px;">PNG, JPG, WebP — max 2MB</div>
       </div>
+    </div>
+    <!-- SPECS EDITOR -->
+    <div class="fg2" style="margin-top:4px;">
+      <label>Specifications</label>
+      <div id="ed-specs-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+      <button type="button" onclick="addEditSpecRow()"
+        style="display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px dashed #d1d5db;border-radius:7px;background:#f9fafb;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;justify-content:center;transition:all 0.15s;"
+        onmouseover="this.style.borderColor='#1a56db';this.style.color='#1a56db';"
+        onmouseout="this.style.borderColor='#d1d5db';this.style.color='#6b7280';">
+        + Add Specification
+      </button>
     </div>
     <div class="modal-btns">
       <button class="btn-mc" onclick="closeModal('editDeviceModal')">Cancel</button>
@@ -577,7 +674,9 @@ let allOrders  = {};
 let allDevices = {};
 let currentOrderId = null;
 let editImgFile    = null;
+let editImgBase64  = null;
 let newDevImgFile  = null;
+let newDevImgBase64= null;
 const PKR_TO_USD   = 278;
 
 // Default devices (for first run)
@@ -664,7 +763,11 @@ function initAdmin(){
     renderOrdersTable();
     renderTrackingTable();
     updateOrderBadge();
+    updateTabCounts();
   });
+
+  // Listen for reviews
+  initReviewsListener();
 }
 
 function updateClock(){
@@ -680,7 +783,7 @@ function updateClock(){
 const TITLES = {
   dashboard:'Dashboard', devices:'Manage Devices',
   orders:'All Orders', tracking:'Track & Update',
-  adddevice:'Add New Device'
+  adddevice:'Add New Device', reviews:'Customer Reviews'
 };
 
 function showSection(s){
@@ -694,6 +797,7 @@ function showSection(s){
   if(s==='orders')   renderOrdersTable();
   if(s==='tracking') renderTrackingTable();
   if(s==='devices')  renderDevicesAdmin();
+  if(s==='reviews')  loadAdminReviews();
 }
 
 // ════════════════════════════════════
@@ -722,9 +826,36 @@ function renderDashboard(){
 //  ORDERS TABLE
 // ════════════════════════════════════
 function renderOrdersTable(){
-  const filter = document.getElementById('orderFilter')?.value||'all';
+  const search     = (document.getElementById('orderSearch')?.value||'').toLowerCase();
+  const timeFilter = document.getElementById('orderTimeFilter')?.value||'all';
+  const now = Date.now();
+  const newCutoff = now - (24*60*60*1000);
+
   let orders = Object.values(allOrders).sort((a,b)=>(b.orderTimestamp||0)-(a.orderTimestamp||0));
-  if(filter!=='all') orders = orders.filter(o=>o.status===filter);
+
+  // Tab filter
+  if(currentOrderTab==='new')       orders = orders.filter(o=>o.orderTimestamp>=newCutoff);
+  else if(currentOrderTab!=='all')  orders = orders.filter(o=>o.status===currentOrderTab);
+
+  // Time filter
+  if(timeFilter==='today'){
+    const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+    orders = orders.filter(o=>o.orderTimestamp >= startOfDay.getTime());
+  } else if(timeFilter==='week'){
+    orders = orders.filter(o=>o.orderTimestamp >= now - 7*24*60*60*1000);
+  } else if(timeFilter==='month'){
+    orders = orders.filter(o=>o.orderTimestamp >= now - 30*24*60*60*1000);
+  }
+
+  // Search filter
+  if(search) orders = orders.filter(o=>
+    o.orderID?.toLowerCase().includes(search) ||
+    o.customer?.name?.toLowerCase().includes(search) ||
+    o.customer?.email?.toLowerCase().includes(search) ||
+    (o.customer?.phone||'').includes(search)
+  );
+
+  updateTabCounts();
 
   document.getElementById('allOrdersTable').innerHTML = orders.length
     ? orders.map(o=>orderRow(o,false)).join('')
@@ -732,11 +863,13 @@ function renderOrdersTable(){
 }
 
 function orderRow(o, short){
+  const isNew = (Date.now() - (o.orderTimestamp||0)) < 24*60*60*1000;
   const items = (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join(', ');
   const statusBadge = `<span class="sbadge sbadge-${o.status||'pending'}">${statusLabel(o.status)}</span>`;
+  const newBadge = isNew ? '<span style="display:inline-block;background:#dc2626;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:5px;letter-spacing:0.5px;">NEW</span>' : '';
   if(short){
-    return `<tr>
-      <td><strong>${o.orderID}</strong></td>
+    return `<tr ${isNew?'class="new-order-row"':''}>
+      <td><strong>${o.orderID}</strong>${newBadge}</td>
       <td>${o.customer?.name||'—'}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${items}</td>
       <td>PKR ${(o.payment?.total||0).toLocaleString()}</td>
@@ -745,15 +878,17 @@ function orderRow(o, short){
       <td><button class="btn-sm" onclick="openOrderPanel('${o.orderID}')">View</button></td>
     </tr>`;
   }
-  return `<tr>
-    <td><strong>${o.orderID}</strong></td>
+  // Full date+time
+  const orderDateTime = o.orderTimestamp ? new Date(o.orderTimestamp).toLocaleString('en-PK',{timeZone:'Asia/Karachi',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : (o.orderDate||'—');
+  return `<tr ${isNew?'class="new-order-row"':''}>
+    <td><strong>${o.orderID}</strong>${newBadge}</td>
     <td>${o.customer?.name||'—'}<br/><span style="font-size:11px;color:var(--text2);">${o.customer?.phone||''}</span></td>
     <td>${o.customer?.city||'—'}, ${o.customer?.country||'—'}</td>
     <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">${items}</td>
     <td><strong>PKR ${(o.payment?.total||0).toLocaleString()}</strong></td>
     <td><span style="font-size:12px;">${payLabel(o.payment?.method)}</span></td>
     <td>${statusBadge}</td>
-    <td style="color:var(--text2);font-size:11px;">${o.orderDate||'—'}</td>
+    <td style="color:var(--text2);font-size:11px;">${orderDateTime}</td>
     <td><button class="btn-sm" onclick="openOrderPanel('${o.orderID}')">View & Update</button></td>
   </tr>`;
 }
@@ -963,20 +1098,91 @@ function openEditDevice(id){
   document.getElementById('ed-desc').value  = d.desc||'';
 
   const prev = document.getElementById('ed-img-preview');
-  if(d.imgUrl){ prev.src=d.imgUrl; prev.style.display='block'; }
-  else        { prev.style.display='none'; }
+  const placeholder = document.getElementById('ed-img-placeholder');
+  const status = document.getElementById('ed-img-status');
+  if(d.imgUrl){
+    prev.src=d.imgUrl; prev.style.display='block';
+    if(placeholder) placeholder.style.display='none';
+    if(status) status.textContent='Current image shown above';
+  } else {
+    prev.style.display='none';
+    if(placeholder) placeholder.style.display='block';
+    if(status) status.textContent='No image yet';
+  }
 
   editImgFile = null;
+  editImgBase64 = null;
+  document.getElementById('ed-img-file').value='';
+
+  // Load specs into editor
+  renderSpecsEditor(d.specs||[]);
+
   document.getElementById('editDeviceModal').classList.add('open');
+}
+
+// ── SPECS EDITOR ──
+function renderSpecsEditor(specs){
+  const list = document.getElementById('ed-specs-list');
+  list.innerHTML = '';
+  (specs.length ? specs : [{l:'',v:''}]).forEach((s,i) => {
+    list.appendChild(createSpecRow(s.l||'', s.v||'', i));
+  });
+}
+
+function createSpecRow(label, value, idx){
+  const row = document.createElement('div');
+  row.className = 'spec-edit-row';
+  row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  row.innerHTML = `
+    <input type="text" value="${label}" placeholder="e.g. Resolution"
+      style="flex:1;padding:9px 11px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;font-family:inherit;outline:none;"
+      onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#d1d5db'"
+      class="spec-label-inp"/>
+    <input type="text" value="${value}" placeholder="e.g. 50 μm"
+      style="flex:1;padding:9px 11px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;font-family:inherit;outline:none;"
+      onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#d1d5db'"
+      class="spec-val-inp"/>
+    <button type="button" onclick="this.parentElement.remove()"
+      style="width:32px;height:32px;border-radius:6px;border:1px solid #fecaca;background:#fff;color:#dc2626;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;"
+      title="Remove spec">×</button>
+  `;
+  return row;
+}
+
+function addEditSpecRow(){
+  const list = document.getElementById('ed-specs-list');
+  list.appendChild(createSpecRow('','', list.children.length));
+}
+
+function getEditedSpecs(){
+  const rows = document.querySelectorAll('#ed-specs-list .spec-edit-row');
+  const specs = [];
+  rows.forEach(row => {
+    const l = row.querySelector('.spec-label-inp').value.trim();
+    const v = row.querySelector('.spec-val-inp').value.trim();
+    if(l && v) specs.push({l, v});
+  });
+  return specs;
 }
 
 function previewEditImg(input){
   if(!input.files[0]) return;
   editImgFile = input.files[0];
+  if(editImgFile.size > 2*1024*1024){
+    showToast('⚠ Image too large! Max 2MB'); 
+    input.value='';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e=>{
+    editImgBase64 = e.target.result; // store base64
     const p = document.getElementById('ed-img-preview');
-    p.src=e.target.result; p.style.display='block';
+    const ph = document.getElementById('ed-img-placeholder');
+    const st = document.getElementById('ed-img-status');
+    p.src=editImgBase64; p.style.display='block';
+    if(ph) ph.style.display='none';
+    if(st) st.textContent='✓ New image ready — click Save to apply';
+    showToast('✅ Image selected! Click Save Changes to apply.');
   };
   reader.readAsDataURL(editImgFile);
 }
@@ -984,10 +1190,20 @@ function previewEditImg(input){
 function previewNewDeviceImg(input){
   if(!input.files[0]) return;
   newDevImgFile = input.files[0];
+  if(newDevImgFile.size > 2*1024*1024){
+    showToast('⚠ Image too large! Max 2MB');
+    input.value=''; return;
+  }
   const reader = new FileReader();
   reader.onload = e=>{
-    const p = document.getElementById('nd-img-preview');
-    p.src=e.target.result; p.style.display='block';
+    newDevImgBase64 = e.target.result;
+    const p  = document.getElementById('nd-img-preview');
+    const ic = document.getElementById('nd-img-icon');
+    const st = document.getElementById('nd-img-status');
+    p.src=newDevImgBase64; p.style.display='block';
+    if(ic) ic.style.display='none';
+    if(st) st.textContent='✓ Image ready to save';
+    showToast('✅ Image selected! Fill in details and click Save Device.');
   };
   reader.readAsDataURL(newDevImgFile);
 }
@@ -1002,25 +1218,23 @@ async function saveEditDevice(){
 
   if(!name||!price){ showToast('⚠ Name and price required'); return; }
 
-  const updates = {name,pricePKR:price,stock,badge,desc};
+  const specs = getEditedSpecs();
+  const updates = {name,pricePKR:price,stock,badge,desc,specs};
 
-  // Upload image if new one selected
-  if(editImgFile){
-    try {
-      const ref  = storage.ref('devices/'+id+'_'+Date.now());
-      const snap = await ref.put(editImgFile);
-      updates.imgUrl = await snap.ref.getDownloadURL();
-    } catch(e){
-      showToast('⚠ Image upload failed — saving other changes');
-    }
+  // Use base64 image — no Firebase Storage needed, works on free plan
+  if(editImgBase64){
+    updates.imgUrl = editImgBase64;
   }
 
   try {
+    showToast('⏳ Saving...');
     await db.ref('/devices/'+id).update(updates);
     closeModal('editDeviceModal');
-    showToast('✅ '+name+' updated!');
+    editImgFile=null; editImgBase64=null;
+    showToast('✅ '+name+' saved! Image updated.');
   } catch(e){
     showToast('❌ Save failed: '+e.message);
+    console.error(e);
   }
 }
 
@@ -1048,15 +1262,9 @@ async function saveNewDevice(){
 
   const newDev = {id,name,cat,emoji,desc,pricePKR:price,stock,badge,specs};
 
-  // Upload image
-  if(newDevImgFile){
-    try {
-      const ref  = storage.ref('devices/'+id+'_'+Date.now());
-      const snap = await ref.put(newDevImgFile);
-      newDev.imgUrl = await snap.ref.getDownloadURL();
-    } catch(e){
-      showToast('⚠ Image upload failed — device saved without image');
-    }
+  // Use base64 image — no Firebase Storage needed
+  if(newDevImgBase64){
+    newDev.imgUrl = newDevImgBase64;
   }
 
   try {
@@ -1067,7 +1275,7 @@ async function saveNewDevice(){
       document.getElementById(f).value='';
     });
     document.getElementById('nd-img-preview').style.display='none';
-    newDevImgFile=null;
+    newDevImgFile=null; newDevImgBase64=null;
     showSection('devices');
   } catch(e){
     showToast('❌ Save failed: '+e.message);
@@ -1102,7 +1310,120 @@ function showToast(msg){
   clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),3200);
 }
 
-// Close panel on outside click
+// ════════════════════════════════════════════
+//  ORDER TABS + FILTERING
+// ════════════════════════════════════════════
+let currentOrderTab = 'all';
+
+function setOrderTab(btn, filter){
+  currentOrderTab = filter;
+  document.querySelectorAll('.order-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrdersTable();
+}
+
+function updateTabCounts(){
+  const orders = Object.values(allOrders);
+  const now    = Date.now();
+  const newCutoff = now - (24*60*60*1000); // orders within last 24 hrs
+
+  const counts = {
+    all      : orders.length,
+    new      : orders.filter(o=>o.orderTimestamp >= newCutoff).length,
+    preparing: orders.filter(o=>o.status==='preparing').length,
+    onway    : orders.filter(o=>o.status==='onway').length,
+    delivered: orders.filter(o=>o.status==='delivered').length,
+  };
+
+  Object.entries(counts).forEach(([k,v])=>{
+    const el = document.getElementById('tab-count-'+k);
+    if(el) el.textContent = v;
+  });
+
+  // New orders badge in sidebar
+  const nb = document.getElementById('newOrdersBadge');
+  if(nb){ if(counts.new>0){ nb.textContent=counts.new; nb.style.display='flex'; } else nb.style.display='none'; }
+}
+
+// ════════════════════════════════════════════
+//  REVIEWS ADMIN
+// ════════════════════════════════════════════
+let adminStarFilter = 0;
+let allAdminReviews = {};
+
+// Listen for all reviews once
+function initReviewsListener(){
+  db.ref('/reviews').on('value', snap => {
+    allAdminReviews = snap.exists() ? snap.val() : {};
+    // Update badge
+    const total = Object.values(allAdminReviews).reduce((s,devRevs)=>s+Object.keys(devRevs).length,0);
+    const rb = document.getElementById('reviewsBadge');
+    if(rb){ if(total>0){ rb.textContent=total; rb.style.display='flex'; } else rb.style.display='none'; }
+    loadAdminReviews();
+  });
+}
+
+function setAdminStarFilter(n, btn){
+  adminStarFilter = n;
+  document.querySelectorAll('.rv-admin-star').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadAdminReviews();
+}
+
+function loadAdminReviews(){
+  const devFilter = document.getElementById('rvDevFilter')?.value || 'all';
+  const el = document.getElementById('adminReviewsList');
+  if(!el) return;
+
+  let reviews = [];
+
+  // Collect from all devices or selected
+  const devKeys = devFilter==='all' ? Object.keys(allAdminReviews) : [devFilter];
+  devKeys.forEach(devId=>{
+    const devRevs = allAdminReviews[devId]||{};
+    Object.entries(devRevs).forEach(([key,r])=>{
+      reviews.push({...r, key, devId});
+    });
+  });
+
+  // Star filter
+  if(adminStarFilter>0) reviews = reviews.filter(r=>r.stars===adminStarFilter);
+
+  // Sort newest first
+  reviews.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+
+  document.getElementById('rvAdminCount').textContent = reviews.length + ' review' + (reviews.length!==1?'s':'');
+
+  if(!reviews.length){
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);background:#fff;border:1px solid var(--border);border-radius:9px;">No reviews found</div>';
+    return;
+  }
+
+  const devNames = {biosoft:'BioSoft Ⅰ', diabsense:'Diabe-Neurosense', isometri:'Isometri Muscle Meter'};
+
+  el.innerHTML = reviews.map(r=>`
+    <div class="admin-rv-card">
+      <div style="flex:1;">
+        <div class="arc-device">📦 ${devNames[r.devId]||r.devId}</div>
+        <div class="arc-stars">${'★'.repeat(r.stars||0)}${'☆'.repeat(5-(r.stars||0))}</div>
+        <div style="font-size:13px;font-weight:700;color:#0a1628;margin-bottom:2px;">${r.name||'Anonymous'}</div>
+        <div class="arc-meta">${r.date||''}</div>
+        <div class="arc-text" style="margin-top:6px;">${r.text||''}</div>
+      </div>
+      <button class="btn-sm btn-sm-red" onclick="deleteAdminReview('${r.devId}','${r.key}')" title="Delete review">🗑 Delete</button>
+    </div>`).join('');
+}
+
+async function deleteAdminReview(devId, key){
+  if(!confirm('Delete this review? This cannot be undone.')) return;
+  try {
+    await db.ref('/reviews/'+devId+'/'+key).remove();
+    showToast('✅ Review deleted');
+  } catch(e){ showToast('❌ Delete failed: '+e.message); }
+}
+
+// ════════════════════════════════════════════
+//  Close panel on outside click
 document.addEventListener('click', e=>{
   const panel = document.getElementById('orderPanel');
   if(panel.classList.contains('open') && !panel.contains(e.target)){
